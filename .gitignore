@@ -1,0 +1,9 @@
+Meta-Llama-3-8B-Instruct/
+codellama/CodeLlama-7b/
+codellama/CodeLlama-7b-Python/
+
+# remove all pycache directories in this gitingore
+__pycache__/
+
+# Holds the files used when experimenting
+local_dev/
