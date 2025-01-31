@@ -70,7 +70,6 @@ function M.setup(user_config)
 		user_config = {}
 	end
 	local cur_file = debug.getinfo(1, "S").source
-	-- strip the leading '@' and lua/OllamaCopilot/start_up.lua from the end
 
 	print("Starting collama.nvim")
 	cur_file = cur_file:sub(2, -1):sub(1, -31)
@@ -80,7 +79,7 @@ function M.setup(user_config)
 	if not configs.ollama_lsp then
 		configs.ollama_lsp = {
 			default_config = {
-				cmd = { config.python_command, cur_file .. "python/ollama_lsp.py" },
+				cmd = { config.python_command, cur_file .. "/python/ollama_lsp.py" },
 				filetypes = config.filetypes,
 				root_dir = function(fname)
 					local potential_root = lspconfig.util.find_git_ancestor(fname)
