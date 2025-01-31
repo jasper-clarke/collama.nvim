@@ -99,41 +99,31 @@ class OllamaServer:
                 'character': params.position.character, 
                 'suggestion': ''
             }
-            timing_str = ''
 
-            async for chunk in suggestion_stream:
+            for chunk in suggestion_stream:
                 if self.cancel_suggestion:
                     logger.info("Completion cancelled")
                     self.cancel_suggestion = False
                     return []
 
-                if 'message' in chunk:
-                    self.curr_suggestion['suggestion'] += chunk['message']['content']
-                elif 'response' in chunk:
-                    self.curr_suggestion['suggestion'] += chunk['response']
+                # Extract content from the chunk
+                content = ""
+                if isinstance(chunk, dict):
+                    if 'message' in chunk:
+                        content = chunk['message'].get('content', '')
+                    elif 'response' in chunk:
+                        content = chunk['response']
 
-                if 'context' in chunk:
-                    total_duration = chunk['total_duration'] / 10**9
-                    load_duration = chunk['load_duration'] / 10**9
-                    prompt_eval_duration = chunk['prompt_eval_duration'] / 10**9
-                    eval_count = chunk['eval_count']
-                    eval_duration = chunk['eval_duration'] / 10**9
-                    timing_str = f"""
-                        Total duration: {total_duration},
-                        Load duration: {load_duration},
-                        Prompt eval duration: {prompt_eval_duration},
-                        Eval count: {eval_count},
-                        Eval duration: {eval_duration}"""
-                    logger.debug(f"Completion timing: {timing_str}")
+                if content:
+                    self.curr_suggestion['suggestion'] += content
+                    if self.stream_suggestion:
+                        self.send_suggestion(
+                            self.curr_suggestion['suggestion'],
+                            self.curr_suggestion['line'],
+                            self.curr_suggestion['character'],
+                            suggestion_type='stream'
+                        )
 
-                if self.stream_suggestion:
-                    self.send_suggestion(
-                        self.curr_suggestion['suggestion'],
-                        self.curr_suggestion['line'],
-                        self.curr_suggestion['character'],
-                        suggestion_type='stream'
-                    )
-            
             final_suggestion = self.strip_suggestion(self.curr_suggestion['suggestion'])
             self.send_suggestion(
                 final_suggestion,
@@ -152,7 +142,6 @@ class OllamaServer:
                 self.curr_suggestion['character'],
                 suggestion_type='error'
             )
-            return []
 
         return []
 
@@ -161,9 +150,19 @@ class OllamaServer:
             change = params.content_changes[0]
             logger.debug(f"Document change detected: {change.text}")
 
-            lines = self.server.workspace.get_text_document(params.text_document.uri).lines
-            line = lines[change.range.start.line][change.range.start.character + 1:]
-            contains_non_whitespace = bool(re.search(r'[^\s]', line))
+            document = self.server.workspace.get_text_document(params.text_document.uri)
+            lines = document.lines
+            
+            # Safety check for index
+            if change.range.start.line >= len(lines):
+                return
+                
+            line = lines[change.range.start.line]
+            if change.range.start.character + 1 >= len(line):
+                return
+                
+            remaining_line = line[change.range.start.character + 1:]
+            contains_non_whitespace = bool(re.search(r'[^\s]', remaining_line))
 
             if contains_non_whitespace:
                 return

@@ -1,5 +1,6 @@
 import ollama
-from ollama import generate
+from ollama import chat
+
 class CompletionEngine:
     def __init__(self, model: str, options={}):
         self.model = model
