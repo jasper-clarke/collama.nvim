@@ -1,4 +1,4 @@
-require('OllamaCopilot')
+require("collama-nvim").setup() -- when testing locally
 --require('OllamaCopilot').setup() -- when testing locally
 --
 -- -- Default configuration
@@ -16,5 +16,4 @@ require('OllamaCopilot')
 --         insert_accept = '<C-a>',
 --     },
 -- }
--- 
-
+--
