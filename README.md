@@ -1,5 +1,7 @@
 # collama.nvim
 
+**This plugin is really bad at the moment and should not be used, I'll be trying to work on it to improve it. If you can assist with anything please create an issue.**
+
 ## Overview
 ### Copilot-like Tab Completion for NeoVim
 collama.nvim allows users to integrate their Ollama code completion models into Neovim, giving GitHub Copilot-like tab completions.
